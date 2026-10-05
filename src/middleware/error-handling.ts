@@ -1,5 +1,6 @@
 import type { Request, Response, NextFunction } from "express"
 import { treeifyError, ZodError } from "zod"
+import { Prisma } from "../../generated/prisma/client.js"
 import type { ErrorWithCode } from "../types.js"
 
 export default function (error: ErrorWithCode, _: Request, response: Response, next: NextFunction): void {
@@ -10,7 +11,16 @@ export default function (error: ErrorWithCode, _: Request, response: Response, n
             success: false,
             error: treeifyError(error)
         })
+        return
+    }
 
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+        if (error.code === "P2002") {
+            response.status(409).json({
+                success: false,
+                error: "Unique constraint failed"
+            })
+        }
         return
     }
 

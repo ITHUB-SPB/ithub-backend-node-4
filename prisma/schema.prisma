@@ -14,6 +14,11 @@ enum Category {
   other
 }
 
+enum Role {
+  user
+  moderator
+}
+
 model Product {
   id          Int      @id @default(autoincrement())
   name        String
@@ -23,4 +28,11 @@ model Product {
   imageUrl    String?
   archived    Boolean  @default(false)
   createdAt   DateTime @default(now())
+}
+
+model Account {
+  id       Int    @id @default(autoincrement())
+  email    String @unique
+  password String
+  role     Role?   @default(user)
 }
