@@ -1,10 +1,27 @@
 import type { Request, Response, NextFunction } from "express"
 import { treeifyError, ZodError } from "zod"
+import jwt from "jsonwebtoken"
 import { Prisma } from "../../generated/prisma/client.js"
 import type { ErrorWithCode } from "../types.js"
 
 export default function (error: ErrorWithCode, _: Request, response: Response, next: NextFunction): void {
     console.error(error)
+
+    if (error instanceof jwt.TokenExpiredError) {
+        response.status(401).json({
+            success: false,
+            error: "Токен устарел"
+        })
+        return
+    }
+
+    if (error instanceof jwt.JsonWebTokenError) {
+        response.status(401).json({
+            success: false,
+            error: "Токен не валиден"
+        })
+        return
+    }
 
     if (error instanceof ZodError) {
         response.status(422).json({

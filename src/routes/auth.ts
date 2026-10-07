@@ -1,7 +1,7 @@
 import { scrypt } from 'node:crypto'
-import { Router, type Request, type Response } from "express"
+import { Router, type NextFunction, type Request, type Response } from "express"
 import * as z from 'zod'
-import jwt from 'jsonwebtoken'
+import jwt, { type JwtPayload } from 'jsonwebtoken'
 
 import { prisma } from "../prisma.js"
 import { formatSuccess } from '../middleware/format-result.js'
@@ -24,6 +24,27 @@ const hashPassword = (password: string): Promise<string> => new Promise((resolve
         resolve(result.toString('hex'))
     })
 })
+
+const authenticate = (request: Request, _response: Response, next: NextFunction) => {
+    const authHeader = request.headers.authorization
+
+    if (!authHeader) {
+        return next(new Error('Отсутствует информация для аутентификации'))
+    }
+
+    const authString = authHeader.match(/Bearer (.*)/)
+    const accessToken = authString?.at(1)
+
+    if (!authString || !accessToken) {
+        return next(new Error('Некорректный формат данных для аутентификации'))
+    }
+    
+    const payload = jwt.verify(accessToken, process.env.JWT_SECRET) as JwtPayload
+
+    // @ts-expect-error
+    request.user = payload
+    next()
+}
 
 export const authRouter = Router()
 
@@ -66,8 +87,13 @@ authRouter.post('/login', async (request: Request, response: Response) => {
 
     const accessToken = jwt.sign(
         { email: user.email, role: user.role }, 
-        process.env.JWT_SECRET
+        process.env.JWT_SECRET,
+        { expiresIn: "2m" }
     )
 
     formatSuccess(response, { accessToken }, "200")
+})
+
+authRouter.get('/me', authenticate, (request: Request, response: Response) => {
+    formatSuccess(response, { user: request.user }, "200")
 })
