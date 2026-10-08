@@ -1,4 +1,6 @@
 import * as z from 'zod'
+import type { Request } from 'express';
+
 import { Prisma } from "../generated/prisma/client.js"
 import { metaSchema } from "./schemas/common.schema.js";
 
@@ -12,3 +14,5 @@ export type DataWithMeta<T> = {
     data: Partial<T>[],
     meta: z.infer<typeof metaSchema>
 }
+
+export type RequestWithAuth = Request & { user?: { email: string, role: "user" | "moderator" } }

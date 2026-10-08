@@ -1,5 +1,6 @@
 import path from 'node:path'
 import express from 'express'
+import cookieParser from 'cookie-parser'
 import * as z from "zod"
 import { ru } from "zod/locales"
 
@@ -12,6 +13,7 @@ z.config(ru())
 
 const app = express()
 
+app.use(cookieParser())
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
 app.use('/static', express.static(path.join(import.meta.dirname, '..', 'assets', 'uploads')))
