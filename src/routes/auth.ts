@@ -32,13 +32,13 @@ const authenticate = (request: Request, _response: Response, next: NextFunction)
         return next(new Error('Отсутствует информация для аутентификации'))
     }
 
-    const authString = authHeader.match(/Bearer (.*)/)
+    const authString = authHeader?.match(/Bearer (.*)/)
     const accessToken = authString?.at(1)
 
     if (!authString || !accessToken) {
         return next(new Error('Некорректный формат данных для аутентификации'))
     }
-    
+
     const payload = jwt.verify(accessToken, process.env.JWT_SECRET) as JwtPayload
 
     // @ts-expect-error
@@ -86,10 +86,65 @@ authRouter.post('/login', async (request: Request, response: Response) => {
     }
 
     const accessToken = jwt.sign(
-        { email: user.email, role: user.role }, 
+        { email: user.email, role: user.role },
         process.env.JWT_SECRET,
-        { expiresIn: "2m" }
+        { expiresIn: "5m" }
     )
+
+    const refreshToken = jwt.sign(
+        { email: user.email, role: user.role },
+        process.env.JWT_SECRET,
+        { expiresIn: "7d" }
+    )
+
+    response.cookie('refresh', refreshToken, {
+        httpOnly: true,
+        sameSite: "strict",
+        maxAge: 7 * 24 * 3600 * 1000 // 7d
+    })
+
+    formatSuccess(response, { accessToken }, "200")
+})
+
+authRouter.post('/refresh', async (request: Request, response: Response) => {
+    const refreshToken = request.cookies['refresh']
+
+    if (!refreshToken) {
+        
+    }
+    
+    const loginData = z.parse(loginUserSchema, request.body)
+
+    const hashedPassword = await hashPassword(loginData.password)
+
+    const user = await prisma.account.findUnique({
+        where: {
+            email: loginData.email,
+            password: hashedPassword
+        }
+    })
+
+    if (!user) {
+        throw new Error('Пользователь не найден')
+    }
+
+    const accessToken = jwt.sign(
+        { email: user.email, role: user.role },
+        process.env.JWT_SECRET,
+        { expiresIn: "5m" }
+    )
+
+    const refreshToken = jwt.sign(
+        { email: user.email, role: user.role },
+        process.env.JWT_SECRET,
+        { expiresIn: "7d" }
+    )
+
+    response.cookie('refresh', refreshToken, {
+        httpOnly: true,
+        sameSite: "strict",
+        maxAge: 7 * 24 * 3600 * 1000 // 7d
+    })
 
     formatSuccess(response, { accessToken }, "200")
 })

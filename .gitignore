@@ -3,3 +3,5 @@ dist
 *lock.json
 /generated/prisma
 prisma/migrations
+
+dev.db
