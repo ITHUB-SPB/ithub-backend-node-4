@@ -30,7 +30,7 @@ const PERMISSIONS: Permissions = {
 }
 
 export default function authorize(rules: Rules) {
-    return (request: RequestWithAuth, response: Response, next: NextFunction) {
+    return (request: RequestWithAuth, response: Response, next: NextFunction) => {
         const role = request.user!.role
         const roleRules = rules[role]
 

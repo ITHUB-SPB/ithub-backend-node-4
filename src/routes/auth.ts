@@ -9,8 +9,11 @@ import authenticate from '../middleware/authenticate.js'
 import { generateTokens, hashPassword } from "../helpers/auth.js"
 import { createUserSchema, loginUserSchema } from "../schemas/auth.schema.js"
 import authorize from "../middleware/authorize.js"
+import { authRateLimit } from "../middleware/rate-limit.js"
 
 export const authRouter = Router()
+
+authRouter.use(authRateLimit)
 
 authRouter.post('/register', async (request: RequestWithAuth, response: Response) => {
     const userData = z.parse(createUserSchema, request.body)

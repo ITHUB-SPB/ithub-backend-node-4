@@ -7,12 +7,14 @@ import { ru } from "zod/locales"
 import { productsRouter } from './routes/products.js'
 import { authRouter } from './routes/auth.js'
 import { logger, errorHandler } from './middleware/index.js'
+import { globalRateLimit } from './middleware/rate-limit.js'
 import type { ErrorWithCode } from './types.js'
 
 z.config(ru())
 
 const app = express()
 
+app.use(globalRateLimit)
 app.use(cookieParser())
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
