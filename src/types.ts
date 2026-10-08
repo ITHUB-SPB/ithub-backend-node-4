@@ -15,4 +15,11 @@ export type DataWithMeta<T> = {
     meta: z.infer<typeof metaSchema>
 }
 
-export type RequestWithAuth = Request & { user?: { email: string, role: "user" | "moderator" } }
+export type RequestAuth = {
+    user?: {
+        email: string,
+        role: "user" | "moderator"
+    }
+}
+
+export type RequestWithAuth = Request & RequestAuth
