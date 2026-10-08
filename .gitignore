@@ -7,3 +7,4 @@ prisma/migrations
 dev.db
 
 .env*
+!.env.example
