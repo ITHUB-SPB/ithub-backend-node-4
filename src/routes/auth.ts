@@ -8,6 +8,7 @@ import { formatSuccess } from '../middleware/format-result.js'
 import authenticate from '../middleware/authenticate.js'
 import { generateTokens, hashPassword } from "../helpers/auth.js"
 import { createUserSchema, loginUserSchema } from "../schemas/auth.schema.js"
+import authorize from "../middleware/authorize.js"
 
 export const authRouter = Router()
 
@@ -108,4 +109,16 @@ authRouter.get('/me', authenticate, (request: RequestWithAuth, response: Respons
     const result = { user: request.user! }
 
     formatSuccess(response, result, "200")
+})
+
+authRouter.delete('/:email', authenticate, authorize, async (request: RequestWithAuth, response: Response) => {
+    const email = request.params['email'] as string
+
+    await prisma.account.delete({
+        where: {
+            email
+        }
+    })
+
+    formatSuccess(response, { message: "Аккаунт удалён" }, "202")
 })
