@@ -1,12 +1,27 @@
 import { type NextFunction, type Response } from "express"
 import { type RequestWithAuth } from "../types.js"
 
-export default function authorize(request: RequestWithAuth, response: Response, next: NextFunction) {
-    const role = request.user!.role
+type Operation = 'delete' | 'create' | 'edit' | 'read'
+type Scope = 'any' | 'own'
+type Resource = 'users' | 'products'
 
-    if (role !== 'moderator') {
-        next(new Error('Недостаточно прав'))
-    }
+type Permission = `${Operation}:${Scope}:${Resource}`
 
-    next()
+type Rules = {
+    user?: Permission[],
+    moderator?: Permission[]
 }
+
+export default function authorize(rules: Rules) {
+
+    return (request: RequestWithAuth, response: Response, next: NextFunction) {
+        const role = request.user!.role
+
+        if (role !== 'moderator') {
+            next(new Error('Недостаточно прав'))
+        }
+
+        next()
+    }
+}
+

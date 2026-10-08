@@ -111,14 +111,19 @@ authRouter.get('/me', authenticate, (request: RequestWithAuth, response: Respons
     formatSuccess(response, result, "200")
 })
 
-authRouter.delete('/:email', authenticate, authorize, async (request: RequestWithAuth, response: Response) => {
-    const email = request.params['email'] as string
+authRouter.delete(
+    '/:email', 
+    authenticate, 
+    authorize({ user: ['delete:own:users'], moderator: ['delete:any:users'] }), 
+    async (request: RequestWithAuth, response: Response) => {
+        const email = request.params['email'] as string
 
-    await prisma.account.delete({
-        where: {
-            email
-        }
-    })
+        await prisma.account.delete({
+            where: {
+                email
+            }
+        })
 
-    formatSuccess(response, { message: "Аккаунт удалён" }, "202")
-})
+        formatSuccess(response, { message: "Аккаунт удалён" }, "202")
+    }
+)

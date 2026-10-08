@@ -141,3 +141,7 @@
 - rate limiting на /auth/login: не более 10 запросов за 15 минут 
 - размер тела запроса ограничен до 10kb
 - error handler скрывает stack trace в production
+
+
+// https://github.com/onury/accesscontrol
+// https://github.com/phellipeandrade/rbac
