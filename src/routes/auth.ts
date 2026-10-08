@@ -114,7 +114,7 @@ authRouter.get('/me', authenticate, (request: RequestWithAuth, response: Respons
 authRouter.delete(
     '/:email', 
     authenticate, 
-    authorize({ user: ['delete:own:users'], moderator: ['delete:any:users'] }), 
+    authorize({ user: ['delete:own:accounts'], moderator: ['delete:any:accounts'] }), 
     async (request: RequestWithAuth, response: Response) => {
         const email = request.params['email'] as string
 

@@ -5,3 +5,5 @@ dist
 prisma/migrations
 
 dev.db
+
+.env*
