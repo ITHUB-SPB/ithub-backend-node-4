@@ -2,6 +2,7 @@ import path from 'node:path'
 import express from 'express'
 import cookieParser from 'cookie-parser'
 import helmet from 'helmet'
+import cors from 'cors'
 import * as z from "zod"
 import { ru } from "zod/locales"
 
@@ -14,6 +15,10 @@ import type { ErrorWithCode } from './types.js'
 z.config(ru())
 
 const app = express()
+
+app.use(cors({
+    origin: "http://localhost:5173"
+}))
 
 app.use(helmet({
     hidePoweredBy: true,
