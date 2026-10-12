@@ -3,13 +3,17 @@ import * as z from 'zod'
 import jwt, { type JwtPayload } from 'jsonwebtoken'
 
 import { prisma } from "../prisma.js"
-import type { RequestWithAuth } from '../types.js'
+
 import { formatSuccess } from '../middleware/format-result.js'
 import authenticate from '../middleware/authenticate.js'
+import authorize from "../middleware/authorize.js"
+import owns from "../middleware/owns.js"
+import { authRateLimit } from "../middleware/rate-limit.js"
+
 import { generateTokens, hashPassword } from "../helpers/auth.js"
 import { createUserSchema, loginUserSchema } from "../schemas/auth.schema.js"
-import authorize from "../middleware/authorize.js"
-import { authRateLimit } from "../middleware/rate-limit.js"
+import type { RequestWithAuth } from '../types.js'
+
 
 export const authRouter = Router()
 
@@ -117,7 +121,8 @@ authRouter.get('/me', authenticate, (request: RequestWithAuth, response: Respons
 authRouter.delete(
     '/:email', 
     authenticate, 
-    authorize({ user: ['delete:own:accounts'], moderator: ['delete:any:accounts'] }), 
+    authorize('delete:account'), 
+    owns('account', 'email', 'email'),
     async (request: RequestWithAuth, response: Response) => {
         const email = request.params['email'] as string
 
