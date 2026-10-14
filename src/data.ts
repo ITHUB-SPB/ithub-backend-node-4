@@ -1,5 +1,8 @@
 import * as z from 'zod'
 import { productSchema } from "./schemas/products.schema.js"
+import { accountSchema } from "./schemas/accounts.schema.js"
+
+export const accounts: z.output<typeof accountSchema>[] = []
 
 export const products: z.output<typeof productSchema>[] = [
     {

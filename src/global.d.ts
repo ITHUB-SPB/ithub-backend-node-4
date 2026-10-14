@@ -1,7 +1,8 @@
 declare global {
     namespace NodeJS {
         interface ProcessEnv {
-            DEBUG: boolean
+            DEBUG?: boolean
+            DATABASE_URL?: string
         }
     }
 }
