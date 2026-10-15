@@ -6,10 +6,23 @@ import { ru } from "zod/locales"
 import { productsRouter } from './routes/products.js'
 import { logger, errorHandler } from './middleware/index.js'
 import type { ErrorWithCode } from './types.js'
+import helmet from "helmet"
 
 z.config(ru())
 
 const app = express()
+
+app.disable('x-powered-by');
+app.use(
+  helmet({
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        frameAncestors: ["'none'"]
+      }
+    }
+  })
+)
 
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
