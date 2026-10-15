@@ -34,28 +34,34 @@ class ProductsRepositorySqlite extends ProductsRepository<false> {
         }
     }
 
-    override getAll(input: z.output<typeof getProductsInputSchema>): Promise<z.output<typeof getProductsWithMetaOutputSchema>> {
-        return Promise.resolve({
-            data: [
-                {
-                    id: 1,
-                    name: "bloose",
-                    category: "clothing",
-                    description: "xl",
-                    price: 4200,
-                    imageUrl: null,
-                    accountId: 1,
-                    archived: false,
-                    createdAt: new Date(2022, 8, 10)
-                }
-            ],
+    override async getAll(input: z.output<typeof getProductsInputSchema>): Promise<z.output<typeof getProductsWithMetaOutputSchema>> {
+        const products = await prisma.product.findMany({
+            where: {
+                category: {
+                    equals: input.query.category
+                },
+                price: {
+                    gte: input.query.minPrice,
+                    lte: input.query.maxPrice
+                },
+            },
+            include: { account: { select: { email: true } } }
+        });
+
+        const formattedData = products.map(({ account, ...product }) => ({
+            ...product,
+            email: account.email
+        }));
+
+        return {
+            data: formattedData,
             meta: {
                 limit: 10,
                 page: 1,
                 pages: 1,
-                total: 1
+                total: formattedData.length
             }
-        })
+        };
     }
 
     override async getOne(id: number | string): Promise<z.output<typeof getProductOutputSchema>> {
