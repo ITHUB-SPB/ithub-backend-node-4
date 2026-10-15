@@ -12,7 +12,6 @@ type GetProductOutput = z.output<typeof getProductOutputSchema>
 type GetAccountOutput = z.output<typeof getAccountSchema>
 type GetAuthOutput = z.output<typeof getAuthSchema>
 
-
 abstract class BaseRepository<T extends BaseEntity, TSync> {
     abstract getAll(input: z.output<typeof inputSchema>): TSync extends true ? DataWithMeta<T> : Promise<DataWithMeta<T>>;
     abstract getOne(id: T['id']): TSync extends true ? Partial<T> | undefined : Promise<Partial<T> | undefined>;

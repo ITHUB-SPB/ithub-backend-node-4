@@ -13,7 +13,7 @@ productsRouter.get('/', async (request: Request, response: Response) => {
 
     const responseData = getProductsWithMetaOutputSchema.parse({
         data,
-        meta
+        meta 
     })
 
     console.log(responseData)
