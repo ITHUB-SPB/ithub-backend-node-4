@@ -1,6 +1,8 @@
 import * as z from "zod"
 import { metaSchema } from "./common.schema.js"
 
+const categoryEnum = z.enum(['electronics', 'clothing', 'food', 'other'])
+
 export const createProductInputSchema = z.object({
     body: z.strictObject({
         name: z.string().min(2).max(100),
@@ -28,6 +30,16 @@ export const productSchema = z.object({
 
 export const getProductOutputSchema = productSchema.extend({
     email: z.email()
+})
+
+export const getManyProductsInputSchema = z.object({
+    query: z.object({
+        category: categoryEnum.optional(),
+        minPrice: z.coerce.number().nonnegative().optional().default(0), 
+        maxPrice: z.coerce.number().positive().optional().default(Number.MAX_SAFE_INTEGER),
+        page: z.coerce.number().positive().int().optional().default(1),
+        limit: z.coerce.number().positive().int().optional().default(10)
+    }),
 })
 
 export const getProductsInputSchema = z.object({

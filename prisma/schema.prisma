@@ -28,11 +28,24 @@ model Product {
   imageUrl    String?
   archived    Boolean  @default(false)
   createdAt   DateTime @default(now())
+  accountId   Int
+  account     Account  @relation(fields: [accountId], references: [id], onDelete: Cascade)
 }
 
 model Account {
-  id       Int    @id @default(autoincrement())
-  email    String @unique
+  id       Int       @id @default(autoincrement())
+  email    String    @unique
   password String
-  role     Role?   @default(user)
+  role Role @default(user)
+  createdAt DateTime @default(now())
+  products Product[]
+  profile  Profile?
+}
+
+model Profile {
+  id       Int       @id @default(autoincrement())
+  bio      String
+  avatar   String?
+  accountId   Int  @unique
+  account     Account  @relation(fields: [accountId], references: [id], onDelete: Cascade)
 }
