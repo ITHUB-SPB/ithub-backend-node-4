@@ -1,10 +1,18 @@
-declare global {
-    namespace NodeJS {
-        interface ProcessEnv {
-            DEBUG?: boolean
-            DATABASE_URL?: string
-        }
-    }
-}
+import type { JwtPayload } from 'jsonwebtoken'
 
-export { }
+declare global {
+	namespace NodeJS {
+		interface ProcessEnv {
+			DATABASE_URL?: string
+			ACCESS_TOKEN_SECRET?: string
+			REFRESH_TOKEN_SECRET?: string
+			DEBUG?: string
+		}
+	}
+
+	namespace Express {
+		interface Request {
+			user?: JwtPayload & { id: number, role: 'user' | 'moderator', email: string }
+		}
+	}
+}
