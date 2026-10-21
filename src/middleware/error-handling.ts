@@ -1,27 +1,24 @@
-import type { Request, Response, NextFunction } from "express"
-import { treeifyError, ZodError } from "zod"
-import type { ErrorWithCode } from "../types.js"
+import type { Request, Response, NextFunction } from 'express'
+import { treeifyError, ZodError } from 'zod'
+import { HttpError } from '../types.js'
 
-export default function (error: ErrorWithCode, _: Request, response: Response, next: NextFunction): void {
-    console.error(error)
-
+export default function errorHandler(error: unknown, _request: Request, response: Response, _next: NextFunction): void {
     if (error instanceof ZodError) {
-        response.status(422).json({
-            success: false,
-            error: treeifyError(error)
-        })
-
+        response.status(422).json({ success: false, error: 'Некорректные входные данные', details: treeifyError(error) })
         return
     }
-
-    if (process.env['DEBUG']) {
-        console.error(error.stack)
+    if (error instanceof HttpError) {
+        response.status(error.status).json({ success: false, error: error.message })
+        return
     }
-
-    response.status(Number(error.code || "400")).json({
+    const prismaCode = typeof error === 'object' && error !== null && 'code' in error ? error.code : undefined
+    if (prismaCode === 'P2002') {
+        response.status(409).json({ success: false, error: 'Запись с такими данными уже существует' })
+        return
+    }
+    console.error(error)
+    response.status(500).json({
         success: false,
-        error: error.message
+        error: process.env.DEBUG === 'true' && error instanceof Error ? error.message : 'Внутренняя ошибка сервера',
     })
-
-    next()
 }
