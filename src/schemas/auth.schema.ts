@@ -1,13 +1,12 @@
-import * as z from 'zod'
-import { accountSchema } from './accounts.schema.js'
-import { inputSchema } from './common.schema.js'
+import { z } from 'zod';
+import { EmailSchema } from './common.schema.js';
+import { CreateAccountSchema } from './accounts.schema.js';
 
-export const getAuthSchema = accountSchema
+export const RegisterSchema = CreateAccountSchema;
 
-export const createAuthSchema = inputSchema.extend({
-    body: accountSchema.omit({
-        id: true
-    }).extend({
-        role: z.literal(['user', 'moderator']).optional().default("user")
-    })
-})
+export const LoginSchema = z.object({
+  body: z.object({
+    email: EmailSchema,
+    password: z.string().min(1).max(128),
+  }),
+});

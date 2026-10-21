@@ -1,37 +1,35 @@
-import * as z from 'zod'
-import type { BaseEntity, DataWithMeta } from "../types.js";
-import { productSchema, getProductOutputSchema, getProductsInputSchema, createProductInputSchema } from '../schemas/products.schema.js'
-import { accountSchema, getAccountSchema } from '../schemas/accounts.schema.js';
-import { getAuthSchema, createAuthSchema } from '../schemas/auth.schema.js';
-import { inputSchema } from '../schemas/common.schema.js';
+import type { GetProductsQuery, CreateProductBody, UpdateProductBody } from '../schemas/products.schema.js';
+import type { PaginatedResponse } from '../types.js';
+import type { Prisma } from '../../generated/prisma/client.js';
 
-type Product = z.output<typeof productSchema>
-type Account = z.output<typeof accountSchema>
+export type ProductWithEmail = Prisma.ProductGetPayload<{
+  include: { account: { select: { email: true } } }
+}> & { email: string };
 
-type GetProductOutput = z.output<typeof getProductOutputSchema>
-type GetAccountOutput = z.output<typeof getAccountSchema>
-type GetAuthOutput = z.output<typeof getAuthSchema>
+export type ProductDetails = Prisma.ProductGetPayload<{
+  include: {
+    account: {
+      select: {
+        email: true;
+        profile: { select: { bio: true; avatar: true } };
+      };
+    };
+  };
+}> & { email: string; profile: { bio: string; avatar: string | null } | null };
 
-
-abstract class BaseRepository<T extends BaseEntity, TSync> {
-    abstract getAll(input: z.output<typeof inputSchema>): TSync extends true ? DataWithMeta<T> : Promise<DataWithMeta<T>>;
-    abstract getOne(id: T['id']): TSync extends true ? Partial<T> | undefined : Promise<Partial<T> | undefined>;
-    abstract add(record: z.output<typeof inputSchema>): TSync extends true ? Partial<T> : Promise<Partial<T>>;
-    // abstract update(id: T['id'], newRecord: Partial<T>): TSync extends true ? Partial<T> : Promise<Partial<T>>;
-    abstract delete(id: T['id']): TSync extends true ? void : Promise<void>;
+export interface IProductsRepository {
+  getAll(query: GetProductsQuery): Promise<PaginatedResponse<ProductWithEmail>>;
+  getOne(id: number): Promise<ProductDetails | null>;
+  getOwnerId(id: number): Promise<number | null>;
+  add(data: CreateProductBody, accountId: number, imageUrl: string | null): Promise<ProductWithEmail>;
+  update(id: number, data: UpdateProductBody, imageUrl?: string): Promise<ProductWithEmail>;
 }
 
-export abstract class ProductsRepository<KSync> extends BaseRepository<Product, KSync> {
-    abstract override getAll(input: z.output<typeof getProductsInputSchema>): KSync extends true ? DataWithMeta<Product> : Promise<DataWithMeta<Product>>
-    abstract override getOne(id: Product['id']): KSync extends true ? GetProductOutput | undefined : Promise<GetProductOutput | undefined>;
-    abstract override add(record: z.output<typeof createProductInputSchema>): KSync extends true ? Partial<Product> : Promise<Partial<Product>>;
-    // abstract override update(id: Product['id'], newRecord: Partial<Product>): KSync extends true ? Partial<Product> : Promise<Partial<Product>>;
-    abstract override delete(id: Product['id']): KSync extends true ? void : Promise<void>;
-}
-
-export abstract class AccountsRepository<KSync> extends BaseRepository<Account, KSync> {
-    abstract override getAll(input: z.output<typeof inputSchema>): KSync extends true ? DataWithMeta<GetAccountOutput> : Promise<DataWithMeta<GetAccountOutput>>
-    abstract override getOne(id: Account['id']): KSync extends true ? GetAccountOutput | GetAuthOutput | undefined : Promise<GetAccountOutput | GetAuthOutput | undefined>;
-    abstract override add(record: z.output<typeof createAuthSchema>): KSync extends true ? Partial<GetAccountOutput> : Promise<Partial<GetAccountOutput>>;
-    // abstract override update(id: Product['id'], newRecord: Partial<Product>): KSync extends true ? Partial<Product> : Promise<Partial<Product>>;
+export interface IAccountsRepository {
+  add(email: string, password: string): Promise<Prisma.AccountGetPayload<{ select: { id: true, email: true, role: true, createdAt: true } }>>;
+  getByEmail(email: string): Promise<Prisma.AccountGetPayload<object> | null>;
+  getAll(page: number, limit: number): Promise<PaginatedResponse<Prisma.AccountGetPayload<{ include: { profile: true } }>>>;
+  getOne(id: number): Promise<Prisma.AccountGetPayload<{ include: { profile: true, products: true } }> | null>;
+  getId(id: number): Promise<number | null>;
+  saveProfile(id: number, bio: string, avatar?: string): Promise<Prisma.ProfileGetPayload<object>>;
 }

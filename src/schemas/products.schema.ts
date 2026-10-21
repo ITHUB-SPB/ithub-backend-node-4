@@ -1,48 +1,44 @@
-import * as z from "zod"
-import { metaSchema } from "./common.schema.js"
+import { z } from 'zod';
+import { AuthHeaderSchema, EmailSchema, IdParamSchema, PaginationSchema } from './common.schema.js';
 
-export const createProductInputSchema = z.object({
-    body: z.strictObject({
-        name: z.string().min(2).max(100),
-        price: z.number().positive(),
-        category: z.literal(['electronics', 'clothing', 'food', 'other']),
-        description: z.nullable(z.string().max(500)),
-        imageUrl: z.nullable(z.url()),
-    }),
-    headers: z.looseObject({
-        Authorization: z.email()
-    }),
-})
+export const CategoryEnum = z.enum(['electronics', 'clothing', 'food', 'other']);
 
-export const productSchema = z.object({
-    id: z.number().positive().int(),
-    accountId: z.number().positive().int(),
-    name: z.string().min(2).max(100),
-    price: z.number().positive(),
-    category: z.literal(['electronics', 'clothing', 'food', 'other']),
-    description: z.nullable(z.string().max(500)),
-    imageUrl: z.nullable(z.url()),
-    archived: z.boolean(),
-    createdAt: z.date()
-})
+const ProductBaseFields = z.object({
+  name: z.string().trim().min(2).max(100),
+  price: z.coerce.number().positive(),
+  category: CategoryEnum,
+  description: z.preprocess(
+    (v) => (v === '' || v === null ? undefined : v),
+    z.string().trim().max(500).optional()
+  ),
+});
 
-export const getProductOutputSchema = productSchema.extend({
-    email: z.email()
-})
+export const GetManyProductsSchema = z.object({
+  query: PaginationSchema.extend({
+    category: CategoryEnum.optional(),
+    creator: EmailSchema.optional(),
+    minPrice: z.coerce.number().nonnegative().optional(),
+    maxPrice: z.coerce.number().positive().optional(),
+  }).refine(
+    (data) => !data.minPrice || !data.maxPrice || data.minPrice <= data.maxPrice,
+    { message: 'minPrice не должен превышать maxPrice', path: ['minPrice'] }
+  ),
+});
 
-export const getProductsInputSchema = z.object({
-    query: z.object({
-        category: z.optional(z.literal(['electronics', 'clothing', 'food', 'other'])),
-        minPrice: z.optional(z.number().positive()).default(-Number.MAX_SAFE_INTEGER),
-        maxPrice: z.optional(z.number().positive()).default(Number.MAX_SAFE_INTEGER),
-        page: z.optional(z.number().positive().int()).default(1),
-        limit: z.optional(z.number().positive().int()).default(10)
-    }),
-})
+export const CreateProductSchema = z.object({
+  headers: z.object({ authorization: AuthHeaderSchema }),
+  body: ProductBaseFields,
+});
 
-export const getProductsOutputSchema = z.array(productSchema)
+export const UpdateProductSchema = z.object({
+  params: IdParamSchema,
+  headers: z.object({ authorization: AuthHeaderSchema }),
+  body: ProductBaseFields.partial(),
+});
 
-export const getProductsWithMetaOutputSchema = z.object({
-    data: getProductsOutputSchema,
-    meta: metaSchema
-})
+export type GetProductsQuery = z.infer<typeof GetManyProductsSchema>['query'];
+export type CreateProductBody = z.infer<typeof CreateProductSchema>['body'];
+export type UpdateProductBody = z.infer<typeof UpdateProductSchema>['body'];
+export const getManyProductsInputSchema = GetManyProductsSchema;
+export const updateProductInputSchema = UpdateProductSchema;
+export const createProductInputSchema = CreateProductSchema;

@@ -1,13 +1,22 @@
-import * as z from 'zod'
-import { metaSchema } from "./schemas/common.schema.js";
-
-export type ErrorWithCode = Error & { code?: `${4 | 5}${number}${number}` }
-
-export type BaseEntity = {
-    id: string | number;
+export class ApiError extends Error {
+  constructor(
+    public readonly message: string,
+    public readonly status: number = 400
+  ) {
+    super(message);
+    this.name = 'ApiError';
+    Error.captureStackTrace(this, this.constructor);
+  }
 }
 
-export type DataWithMeta<T> = {
-    data: Partial<T>[],
-    meta: z.infer<typeof metaSchema>
+export interface PaginationMeta {
+  total: number;
+  page: number;
+  limit: number;
+  pages: number;
+}
+
+export interface PaginatedResponse<T> {
+  data: T[];
+  meta: PaginationMeta;
 }

@@ -1,38 +1,40 @@
 generator client {
-  provider = "prisma-client"
+  provider = "prisma-client-js"
   output   = "../generated/prisma"
 }
 
 datasource db {
   provider = "sqlite"
+  url      = env("DATABASE_URL")
 }
 
-enum Category {
-  electronics
-  clothing
-  food
-  other
+model Account {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  password  String
+  role      String   @default("user")
+  createdAt DateTime @default(now())
+  profile   Profile?
+  products  Product[]
 }
 
-enum Role {
-  user
-  moderator
+model Profile {
+  id        Int     @id @default(autoincrement())
+  bio       String
+  avatar    String?
+  accountId Int     @unique
+  account   Account @relation(fields: [accountId], references: [id], onDelete: Cascade)
 }
 
 model Product {
   id          Int      @id @default(autoincrement())
   name        String
   price       Float
-  category    Category
+  category    String
   description String?
   imageUrl    String?
   archived    Boolean  @default(false)
   createdAt   DateTime @default(now())
-}
-
-model Account {
-  id       Int    @id @default(autoincrement())
-  email    String @unique
-  password String
-  role     Role?   @default(user)
+  accountId   Int
+  account     Account  @relation(fields: [accountId], references: [id], onDelete: Cascade)
 }

@@ -1,19 +1,11 @@
-import type { Request, Response, NextFunction } from 'express'
+import { Request, Response, NextFunction } from 'express';
 
-export default function (request: Request, response: Response, next: NextFunction) {
-    const startTime = Date.now()
-
-    const info = {
-        url: request.url,
-        params: request.params,
-        queryParams: request.query ?? {},
-        body: JSON.parse(request.body ?? "{}")
+export default function logger(req: Request, res: Response, next: NextFunction): void {
+  const start = Date.now();
+  res.on('finish', () => {
+    if (process.env.DEBUG === 'true') {
+      console.info(`[HTTP] ${req.method} ${req.originalUrl} -> ${res.statusCode} (${Date.now() - start}ms)`);
     }
-
-    response.on('end', () => {
-        const duration = Date.now() - startTime
-        console.info(`[${duration.toFixed(3)} ms]: ${info}`)
-    })
-
-    next()
+  });
+  next();
 }

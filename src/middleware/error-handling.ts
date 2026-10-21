@@ -1,27 +1,27 @@
-import type { Request, Response, NextFunction } from "express"
-import { treeifyError, ZodError } from "zod"
-import type { ErrorWithCode } from "../types.js"
+import { Request, Response, NextFunction } from 'express';
+import { ZodError, treeifyError } from 'zod';
+import { ApiError } from '../types.js';
 
-export default function (error: ErrorWithCode, _: Request, response: Response, next: NextFunction): void {
-    console.error(error)
+export default function errorHandler(err: unknown, _req: Request, res: Response, _next: NextFunction): void {
+  if (err instanceof ZodError) {
+    res.status(422).json({ success: false, error: 'Ошибка валидации данных', details: treeifyError(err) });
+    return;
+  }
 
-    if (error instanceof ZodError) {
-        response.status(422).json({
-            success: false,
-            error: treeifyError(error)
-        })
+  if (err instanceof ApiError) {
+    res.status(err.status).json({ success: false, error: err.message });
+    return;
+  }
 
-        return
-    }
+  const prismaCode = typeof err === 'object' && err !== null && 'code' in err ? err.code : undefined;
+  if (prismaCode === 'P2002') {
+    res.status(409).json({ success: false, error: 'Запись с такими уникальными данными уже существует' });
+    return;
+  }
 
-    if (process.env['DEBUG']) {
-        console.error(error.stack)
-    }
-
-    response.status(Number(error.code || "400")).json({
-        success: false,
-        error: error.message
-    })
-
-    next()
+  console.error('[SERVER ERROR]', err);
+  res.status(500).json({
+    success: false,
+    error: process.env.DEBUG === 'true' && err instanceof Error ? err.message : 'Внутренняя ошибка сервера',
+  });
 }

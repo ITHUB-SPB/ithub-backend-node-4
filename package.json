@@ -3,16 +3,17 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "dev": "tsx --watch src/index.ts",
-    "check": "tsc --noEmit",
+    "postinstall": "node -e \"const fs=require('fs'); if(!fs.existsSync('.env')) fs.copyFileSync('.env.example', '.env')\" && npx prisma generate && npx prisma db push",
+    "start": "npx tsx src/index.ts",
+    "dev": "npx tsx watch src/index.ts",
     "build": "tsc",
-    "db:migrate": "prisma migrate dev",
-    "db:generate": "prisma generate"
+    "typecheck": "tsc --noEmit"
   },
   "type": "module",
   "devDependencies": {
     "@types/better-sqlite3": "^9.6.0",
     "@types/express": "^5.0.6",
+    "@types/jsonwebtoken": "^9.0.10",
     "@types/mime-types": "^3.0.1",
     "@types/multer": "^2.2.0",
     "@types/node": "^22.20.3",
@@ -24,6 +25,9 @@
     "@prisma/client": "^7.10.0",
     "dotenv": "^18.0.5",
     "express": "^5.2.1",
+    "express-rate-limit": "^8.5.2",
+    "helmet": "^8.1.0",
+    "jsonwebtoken": "^9.0.3",
     "mime-types": "^3.0.2",
     "multer": "^2.4.0",
     "prisma": "^7.10.0",

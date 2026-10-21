@@ -1,14 +1,14 @@
-import "dotenv/config";
+import 'dotenv/config';
+import { PrismaBetterSqlite3 } from '@prisma/adapter-better-sqlite3';
+import { PrismaClient } from '../generated/prisma/index.js';
 
-import { PrismaBetterSqlite3 } from "@prisma/adapter-better-sqlite3";
-import { PrismaClient } from "../generated/prisma/client.js";
 
-const connectionString = process.env['DATABASE_URL'];
+const connectionString = process.env.DATABASE_URL;
 
 if (!connectionString) {
-    throw new Error('Данные для подключения отсутствуют')
+  throw new Error('Критическая ошибка: не задан DATABASE_URL');
 }
 
-const adapter = new PrismaBetterSqlite3({ url: connectionString });
-
-export const prisma = new PrismaClient({ adapter });
+export const db = new PrismaClient({
+  adapter: new PrismaBetterSqlite3({ url: connectionString }),
+});
