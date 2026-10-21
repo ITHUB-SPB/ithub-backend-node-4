@@ -1,6 +1,8 @@
 import * as z from "zod"
 import { metaSchema } from "./common.schema.js"
 
+const categoryEnum = z.enum(['electronics', 'clothing', 'food', 'other'])
+
 export const createProductInputSchema = z.object({
     body: z.strictObject({
         name: z.string().min(2).max(100),
@@ -12,6 +14,12 @@ export const createProductInputSchema = z.object({
     headers: z.looseObject({
         Authorization: z.email()
     }),
+    file: z.object({
+        mimetype: z.string().refine(val => ['image/jpeg', 'image/png'].includes(val), {
+            message: "Only JPEG and PNG formats are allowed"
+        }),
+        size: z.number().max(2 * 1024 * 1024, { message: "File size must be under 2MB" })
+    }).optional()
 })
 
 export const productSchema = z.object({
@@ -30,6 +38,23 @@ export const getProductOutputSchema = productSchema.extend({
     email: z.email()
 })
 
+export const getManyProductsInputSchema = z.object({
+    query: z.object({
+        category: categoryEnum.optional(),
+        minPrice: z.coerce.number().nonnegative().optional().default(0), 
+        maxPrice: z.coerce.number().positive().optional().default(Number.MAX_SAFE_INTEGER),
+        page: z.coerce.number().positive().int().optional().default(1),
+        limit: z.coerce.number().positive().int().optional().default(10),
+        email: z.email()
+    }),
+})
+
+export const getProductInputSchema = z.object({
+    params: z.object({
+        id: z.coerce.number().positive().int()
+    })
+})
+
 export const getProductsInputSchema = z.object({
     query: z.object({
         category: z.optional(z.literal(['electronics', 'clothing', 'food', 'other'])),
@@ -40,7 +65,7 @@ export const getProductsInputSchema = z.object({
     }),
 })
 
-export const getProductsOutputSchema = z.array(productSchema)
+export const getProductsOutputSchema = z.array(getProductOutputSchema)
 
 export const getProductsWithMetaOutputSchema = z.object({
     data: getProductsOutputSchema,
