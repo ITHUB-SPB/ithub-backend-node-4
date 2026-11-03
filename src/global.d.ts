@@ -1,10 +1,11 @@
+import type { AuthUser } from './types.js'
+
 declare global {
-    namespace NodeJS {
-        interface ProcessEnv {
-            DEBUG?: boolean
-            DATABASE_URL?: string
+    namespace Express {
+        interface Request {
+            user?: AuthUser
         }
     }
 }
 
-export { }
+export {}

@@ -1,13 +1,12 @@
-import { type Response } from "express"
+import type { Response } from 'express'
 
 type SuccessCode = `2${number}${number}`
-type ErrorCode = `${4 | 5}${number}${number}`
 
 export function formatSuccess(
     response: Response,
-    data: { [k: string]: object },
-    code: SuccessCode
-) {
+    data: object,
+    code: SuccessCode = '200'
+): void {
     response.status(Number(code)).json({
         success: true,
         data
@@ -17,10 +16,18 @@ export function formatSuccess(
 export function formatError(
     response: Response,
     message: string,
-    code: ErrorCode = "400",
+    code: string = '400',
     details: object = {}
-) {
-    response.status(Number(code)).json({
+): void {
+    const statusCode = Number(code)
+
+    response.status(
+        Number.isInteger(statusCode) &&
+        statusCode >= 400 &&
+        statusCode <= 599
+            ? statusCode
+            : 500
+    ).json({
         success: false,
         error: message,
         details
