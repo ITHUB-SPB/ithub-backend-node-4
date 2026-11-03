@@ -10,7 +10,7 @@ type GetManyInput = z.output<typeof getManyProductsInputSchema>
 type CreateInput = z.output<typeof createProductInputSchema>
 
 export const productsRepository = {
-    // Получение списка товаров
+
     async getAll(input: GetManyInput) {
         const { category, minPrice, maxPrice, page, limit } = input.query
 
@@ -54,7 +54,7 @@ export const productsRepository = {
         }
     },
 
-    // Получение одного товара
+
     async getOne(id: number) {
         return prisma.product.findFirst({
             where: {
@@ -77,7 +77,7 @@ export const productsRepository = {
         })
     },
 
-    // Создание товара
+
     async add(
         input: CreateInput,
         imageUrl: string | null,
@@ -95,7 +95,7 @@ export const productsRepository = {
         })
     },
 
-    // Обновление товара
+
     async update(
         id: number,
         accountId: number,
