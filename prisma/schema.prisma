@@ -33,8 +33,10 @@ model Product {
   account     Account  @relation(fields: [accountId], references: [id], onDelete: Cascade)
 }
 
+
 model Account {
   id        Int      @id @default(autoincrement())
+  name      String?
   email     String   @unique
   password  String
   role      Role     @default(user)
@@ -43,6 +45,7 @@ model Account {
   profile  Profile?
   products Product[]
 }
+
 
 model Profile {
   id        Int     @id @default(autoincrement())

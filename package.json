@@ -20,10 +20,14 @@
     "typescript": "^7.0.2"
   },
   "dependencies": {
+    "@bull-board/api": "^9.11.0",
+    "@bull-board/express": "^9.11.0",
     "@prisma/adapter-better-sqlite3": "^7.10.0",
     "@prisma/client": "^7.10.0",
+    "bullmq": "^6.7.0",
     "dotenv": "^18.0.5",
     "express": "^5.2.1",
+    "ioredis": "^6.0.0",
     "mime-types": "^3.0.2",
     "multer": "^2.4.0",
     "prisma": "^7.10.0",

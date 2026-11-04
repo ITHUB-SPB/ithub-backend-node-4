@@ -1,9 +1,11 @@
+
 import * as z from 'zod'
 import { inputSchema } from './common.schema.js'
 
 // Схема регистрации
 export const createAuthSchema = inputSchema.extend({
     body: z.strictObject({
+        name: z.string().min(2).max(100).optional(),
         email: z.email(),
         password: z.string().min(8)
     })

@@ -1,3 +1,4 @@
+
 import path from 'node:path'
 import express from 'express'
 import * as z from 'zod'
@@ -14,9 +15,26 @@ import {
 
 import type { ErrorWithCode } from './types.js'
 
+import './workers/email.worker.js'
+
+import { createBullBoard } from '@bull-board/api'
+import { BullMQAdapter } from '@bull-board/api/bullMQAdapter'
+import { ExpressAdapter } from '@bull-board/express'
+import { emailQueue } from '../queues/email.queue.js'
+
 z.config(ru())
 
 const app = express()
+
+// Настройка Bull Board
+const serverAdapter = new ExpressAdapter()
+
+serverAdapter.setBasePath('/admin/queues')
+
+createBullBoard({
+    queues: [new BullMQAdapter(emailQueue)],
+    serverAdapter
+})
 
 // Ограничение размера тела запроса
 app.use(express.json({ limit: '10kb' }))
@@ -45,10 +63,13 @@ app.use(
     express.static(path.resolve('assets/uploads'))
 )
 
-// Маршруты
+// Основные маршруты
 app.use('/api/products', productsRouter)
 app.use('/api/auth', authRouter)
 app.use('/api/users', usersRouter)
+
+// Панель управления очередями
+app.use('/admin/queues', serverAdapter.getRouter())
 
 // Обработка неизвестных маршрутов
 app.use((
