@@ -22,6 +22,10 @@ import { BullMQAdapter } from '@bull-board/api/bullMQAdapter'
 import { ExpressAdapter } from '@bull-board/express'
 import { emailQueue } from '../queues/email.queue.js'
 
+// сокет к чату
+import { createServer } from 'node:http'
+import { setupChat } from './socket.js'
+
 z.config(ru())
 
 const app = express()
@@ -87,6 +91,11 @@ app.use((
 // Обработка ошибок
 app.use(errorHandler)
 
-app.listen(3000, () => {
+
+const httpServer = createServer(app)
+
+setupChat(httpServer)
+
+httpServer.listen(3000, () => {
     console.log('Server started on http://localhost:3000')
 })
