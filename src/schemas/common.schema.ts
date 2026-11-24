@@ -1,6 +1,6 @@
 import * as z from "zod"
 
-export const nonNegativeNumber = z.number().int().refine(value => value >= 0)
+export const nonNegativeNumber = z.number().int().refine((value: number) => value >= 0)
 
 export const metaSchema = z.strictObject({
     total: nonNegativeNumber,

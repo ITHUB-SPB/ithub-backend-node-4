@@ -3,9 +3,9 @@ import { type Response } from "express"
 type SuccessCode = `2${number}${number}`
 type ErrorCode = `${4 | 5}${number}${number}`
 
-export function formatSuccess(
+export function formatSuccess<T>(
     response: Response,
-    data: { [k: string]: object },
+    data: T,
     code: SuccessCode
 ) {
     response.status(Number(code)).json({
